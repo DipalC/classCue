@@ -3,29 +3,44 @@ import react from "@vitejs/plugin-react"
 
 export default defineConfig({
   base: "/classCue/",
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [
+          ["@babel/plugin-transform-react-jsx", { runtime: "automatic" }]
+        ]
+      }
+    })
+  ],
   server: {
     port: 3000,
     open: true,
-    headers: {
-      'Content-Type': 'application/javascript'
+    fs: {
+      strict: false
     }
   },
   build: {
     outDir: "dist",
+    assetsDir: "assets",
+    sourcemap: true,
     rollupOptions: {
       output: {
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        manualChunks: undefined,
+        entryFileNames: `assets/[name].[hash].js`,
+        chunkFileNames: `assets/[name].[hash].js`,
+        assetFileNames: `assets/[name].[hash].[ext]`
       }
+    },
+    commonjsOptions: {
+      transformMixedEsModules: true
     }
   },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        '.js': 'jsx'
-      }
-    }
+  resolve: {
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
+  },
+  esbuild: {
+    loader: "jsx",
+    include: /src\/.*\.jsx?$/,
+    exclude: []
   }
 })
