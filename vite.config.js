@@ -28,7 +28,16 @@ export default defineConfig({
         manualChunks: undefined,
         entryFileNames: `assets/[name].[hash].js`,
         chunkFileNames: `assets/[name].[hash].js`,
-        assetFileNames: `assets/[name].[hash].[ext]`
+        assetFileNames: (assetInfo) => {
+          // Don't hash manifest.json and other PWA assets
+          if (assetInfo.name.endsWith('.json') || 
+              assetInfo.name.includes('pwa-') ||
+              assetInfo.name === 'apple-touch-icon.png' ||
+              assetInfo.name === 'favicon.ico') {
+            return `[name].[ext]`;
+          }
+          return `assets/[name].[hash].[ext]`;
+        }
       }
     },
     commonjsOptions: {
