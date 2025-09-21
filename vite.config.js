@@ -23,17 +23,20 @@ export default defineConfig({
     outDir: "dist",
     assetsDir: "assets",
     sourcemap: true,
+    copyPublicDir: true,
     rollupOptions: {
       output: {
         manualChunks: undefined,
         entryFileNames: `assets/[name].[hash].js`,
         chunkFileNames: `assets/[name].[hash].js`,
         assetFileNames: (assetInfo) => {
-          // Don't hash manifest.json and other PWA assets
-          if (assetInfo.name.endsWith('.json') || 
-              assetInfo.name.includes('pwa-') ||
-              assetInfo.name === 'apple-touch-icon.png' ||
-              assetInfo.name === 'favicon.ico') {
+          const isPWA = assetInfo.name.endsWith('.json') || 
+                       assetInfo.name.includes('pwa-') ||
+                       assetInfo.name === 'apple-touch-icon.png' ||
+                       assetInfo.name === 'favicon.ico' ||
+                       assetInfo.name === 'sw.js';
+          if (isPWA) {
+            // Place PWA files in the root
             return `[name].[ext]`;
           }
           return `assets/[name].[hash].[ext]`;
