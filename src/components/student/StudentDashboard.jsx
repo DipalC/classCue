@@ -10,69 +10,38 @@ const StudentDashboard = () => {
   const [currentClass, setCurrentClass] = useState(null);
   const [nextClass, setNextClass] = useState(null);
   const [freePeriods, setFreePeriods] = useState([]);
+  const [attendanceData, setAttendanceData] = useState({ today: { classes: [] } });
+  const [tasksData, setTasksData] = useState({ academic: [], personal: [] });
 
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setCurrentTime(new Date());
-  //   }, 1000);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const attendance = await loadAttendanceData();
+        const tasks = await loadTasksData();
+        setAttendanceData(attendance);
+        setTasksData(tasks);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      }
+    };
+    loadData();
 
-    // Get today's schedule
-    // const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    // const schedule = timetableData[today] || [];
-    // setTodaySchedule(schedule);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-    // Find current and next class
-    // const now = new Date();
-    // const currentHour = now.getHours();
-    // const currentMinute = now.getMinutes();
-    // const currentTimeMinutes = currentHour * 60 + currentMinute;
-
-    // let current = null;
-    // let next = null;
-    // const free = [];
-
-    // schedule.forEach((cls, index) => {
-    //   const [startTime, endTime] = cls.time.split(' - ');
-    //   const [startHour, startMin] = startTime.split(':').map(Number);
-    //   const [endHour, endMin] = endTime.split(':').map(Number);
-      
-    //   const startMinutes = startHour * 60 + startMin;
-    //   const endMinutes = endHour * 60 + endMin;
-
-    //   if (currentTimeMinutes >= startMinutes && currentTimeMinutes <= endMinutes) {
-    //     current = cls;
-    //   } else if (currentTimeMinutes < startMinutes && !next) {
-    //     next = cls;
-    //   }
-
-    //   // Check for free periods
-    //   if (index > 0) {
-    //     const prevClass = schedule[index - 1];
-    //     const [prevEndHour, prevEndMin] = prevClass.time.split(' - ')[1].split(':').map(Number);
-    //     const prevEndMinutes = prevEndHour * 60 + prevEndMin;
-        
-    //     if (startMinutes - prevEndMinutes > 15) {
-    //       free.push({
-    //         start: `${Math.floor(prevEndMinutes / 60)}:${(prevEndMinutes % 60).toString().padStart(2, '0')}`,
-    //         end: startTime,
-    //         duration: startMinutes - prevEndMinutes
-    //       });
-    //     }
-    //   }
-    // });
-
-  //   setCurrentClass(current);
-  //   setNextClass(next);
-  //   setFreePeriods(free);
-
-  //   return () => clearInterval(timer);
-  // }, []);
+    return () => clearInterval(timer);
+  }, []);
 
   const getAttendanceStatus = () => {
+    if (!attendanceData?.today?.classes) {
+      return { attended: 0, total: 0, percentage: 0 };
+    }
+    
     const todayAttendance = attendanceData.today.classes;
     const totalClasses = todayAttendance.length;
     const attendedClasses = todayAttendance.filter(cls => 
-      cls.students.some(student => student.id === 1 && student.present)
+      cls.students.some(student => student.id === user.id && student.present)
     ).length;
     
     return {
@@ -85,7 +54,9 @@ const StudentDashboard = () => {
   const attendanceStatus = getAttendanceStatus();
 
   const getRecommendedTasks = () => {
-    const currentHour = new Date().getHours();
+    if (!tasksData?.academic || !tasksData?.personal) {
+      return [];
+    }
     const academicTasks = tasksData.academic.slice(0, 3);
     const personalTasks = tasksData.personal.slice(0, 2);
     

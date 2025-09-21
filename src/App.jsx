@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import PWARegistration from './components/PWARegistration.jsx';
@@ -21,15 +21,9 @@ import FacultyAttendance from './components/faculty/FacultyAttendance.jsx';
 // Shared Components
 import Settings from './components/shared/Settings.jsx';
 
-const AppContent = () => {
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [attendanceMarked, setAttendanceMarked] = useState(false);
-
-  const handleAttendanceMarked = () => {
-    setAttendanceMarked(true);
-    setTimeout(() => setAttendanceMarked(false), 3000);
-  };
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -42,70 +36,89 @@ const AppContent = () => {
     );
   }
 
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+const Dashboard = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
+
+  const handleAttendanceMarked = () => {
+    setAttendanceMarked(true);
+    setTimeout(() => setAttendanceMarked(false), 3000);
+  };
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              <div className="min-h-screen bg-gray-50">
-                <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-                <div className="lg:ml-64 transition-all duration-300">
-                  <main className="p-4 lg:p-8">
-                    {user.role === 'student' ? (
-                      <>
-                        {activeTab === 'dashboard' && <StudentDashboard />}
-                        {activeTab === 'attendance' && (
-                          <div className="space-y-6">
-                            {attendanceMarked && (
-                              <div className="card bg-green-50 border-green-200">
-                                <div className="flex items-center">
-                                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-green-800">Attendance Marked Successfully!</h3>
-                                    <p className="text-sm text-green-600">Your attendance has been recorded for today.</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            <QRCodeAttendance onAttendanceMarked={handleAttendanceMarked} />
-                          </div>
-                        )}
-                        {/* {activeTab === 'timetable' && <StudentTimetable />} */}
-                        {activeTab === 'tasks' && <StudentTasks />}
-                        {activeTab === 'settings' && <Settings />}
-                      </>
-                    ) : (
-                      <>
-                        {activeTab === 'dashboard' && <FacultyDashboard />}
-                        {activeTab === 'attendance' && <FacultyAttendance />}
-                        {activeTab === 'students' && <FacultyStudents />}
-                        {activeTab === 'settings' && <Settings />}
-                      </>
-                    )}
-                  </main>
+    <div className="min-h-screen bg-gray-50">
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="lg:ml-64 transition-all duration-300">
+        <main className="p-4 lg:p-8">
+          {user.role === 'student' ? (
+            <>
+              {activeTab === 'dashboard' && <StudentDashboard />}
+              {activeTab === 'attendance' && (
+                <div className="space-y-6">
+                  {attendanceMarked && (
+                    <div className="card bg-green-50 border-green-200">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-green-800">Attendance Marked Successfully!</h3>
+                          <p className="text-sm text-green-600">Your attendance has been recorded for today.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <QRCodeAttendance onAttendanceMarked={handleAttendanceMarked} />
                 </div>
-              </div>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
+              )}
+              {/* {activeTab === 'timetable' && <StudentTimetable />} */}
+              {activeTab === 'tasks' && <StudentTasks />}
+              {activeTab === 'settings' && <Settings />}
+            </>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && <FacultyDashboard />}
+              {activeTab === 'attendance' && <FacultyAttendance />}
+              {activeTab === 'students' && <FacultyStudents />}
+              {activeTab === 'settings' && <Settings />}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+const AppContent = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 };
 
@@ -113,8 +126,10 @@ const App = () => {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <PWARegistration />
-        <AppContent />
+        <Router>
+          <PWARegistration />
+          <AppContent />
+        </Router>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -1,23 +1,30 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  base: '/classCue/',
-  plugins: [
-    react()
-  ],
+  base: "/classCue/",
+  plugins: [react()],
   server: {
     port: 3000,
-    open: true
+    open: true,
+    headers: {
+      'Content-Type': 'application/javascript'
+    }
   },
   build: {
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser',
+    outDir: "dist",
     rollupOptions: {
       output: {
-        manualChunks: undefined
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx'
       }
     }
   }

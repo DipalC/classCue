@@ -1,3 +1,4 @@
+import tasksData from '../../../public/tasks.json';
 import React, { useEffect, useState, useMemo } from 'react';
 import { Target, Clock, BookOpen, CheckCircle, AlertCircle, Plus, Filter } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext.jsx';

@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+
+
+import React, { useState, useEffect } from 'react';
+
 import { Users, Search, Filter, Download, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext.jsx';
 import { loadStudentsData } from '../../utils/dataLoader.js';
 
 const FacultyStudents = () => {
+  const [studentsData, setStudentsData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStudentsData = async () => {
+      try {
+        const data = await loadStudentsData();
+        setStudentsData(data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load students data');
+        setLoading(false);
+        console.error('Error loading students data:', err);
+      }
+    };
+
+    fetchStudentsData();
+  }, []);
   const [filterBy, setFilterBy] = useState('all');
   const { theme } = useTheme();
 
@@ -95,6 +117,29 @@ const FacultyStudents = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading students data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 text-red-500 mx-auto mb-4">❌</div>
+          <p className="text-gray-900 font-medium mb-2">Error Loading Data</p>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

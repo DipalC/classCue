@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, CheckCircle, XCircle, Clock, Calendar, Download, Filter, FileText } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext.jsx';
 import { loadStudentsData, loadAttendanceData } from '../../utils/dataLoader.js';
@@ -12,9 +12,56 @@ const FacultyAttendance = () => {
   const [selectedDate, setSelectedDate] = useState('today');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showQRSession, setShowQRSession] = useState(false);
+  const [attendanceData, setAttendanceData] = useState({ today: { classes: [] } });
+  const [studentsData, setStudentsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [attendance, students] = await Promise.all([
+          loadAttendanceData(),
+          loadStudentsData()
+        ]);
+        setAttendanceData(attendance);
+        setStudentsData(students);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load attendance data');
+        setLoading(false);
+        console.error('Error loading data:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const todayClasses = attendanceData.today.classes;
   const currentClass = todayClasses[selectedClass];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading attendance data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 text-red-500 mx-auto mb-4">❌</div>
+          <p className="text-gray-900 font-medium mb-2">Error Loading Data</p>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStudentInfo = (studentId) => {
     return studentsData.find(s => s.id === studentId);

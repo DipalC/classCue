@@ -1,7 +1,7 @@
 // Utility functions to load data from public folder
 export const loadStudentsData = async () => {
   try {
-    const response = await fetch('/classCue/students.json');
+    const response = await fetch('/students.json');
     return await response.json();
   } catch (error) {
     console.error('Error loading students data:', error);
@@ -11,7 +11,7 @@ export const loadStudentsData = async () => {
 
 export const loadAttendanceData = async () => {
   try {
-    const response = await fetch('/classCue/attendance.json');
+    const response = await fetch('/attendance.json');
     return await response.json();
   } catch (error) {
     console.error('Error loading attendance data:', error);
